@@ -30,3 +30,4 @@ jobs:
       - name: Build and run Go program
         run: |
           go build -o grocy_openai_ingredient_mixer.go
+          go run grocy_openai_ingredient_mixer.go
