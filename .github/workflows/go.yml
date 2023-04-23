@@ -9,17 +9,17 @@ on:
 
 jobs:
   my-job:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    
-    - name: Setup Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
-    
-    - name: Build and run Go program
-      run: |
-        go build -o grocy_openai_ingredient_mixer.go
-        ./grocy_openai_ingredient_mixer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      
+      - name: Build and run Go program
+        run: |
+          go build -o grocy_openai_ingredient_mixer.go
+          ./grocy_openai_ingredient_mixer
