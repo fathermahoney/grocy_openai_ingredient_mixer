@@ -19,7 +19,7 @@ Want a shortcut to utilizing your fridge or pantry items? Don't mind if it's not
 
 ---
 ## Requirements
-* Grocy instance installed with Grocy API key
+* Grocy instance installed with Grocy API key. *See: [grocy.info](https://grocy.info/) for more info*
 * Slack Account & Bot
 * Slack Channel ID
 * Go installed

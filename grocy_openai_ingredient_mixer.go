@@ -16,9 +16,8 @@ import (
 	"strings"
 	"time"
 	"log"
+	"strconv"
 )
-
-const PROMPT_PREFIX = "Then, list 10 meal dishes one could make using any of the following ingredients, which is a list separated by a comma. Each entry represents a full ingredient or product to be considered. Prioritize combinations of ingredients from highly-rated existing recipes. Highlight specific ingredients needed or not included using parenthesis. The list of ingredients starts now "
 
 type Month int
 
@@ -59,7 +58,7 @@ func sendSlackmessage() {
 	RESPONSE_FILE := os.Getenv("RESPONSE_FILE")
 	content, err := ioutil.ReadFile(RESPONSE_FILE)
 	if err != nil {
-		fmt.Println("Err")
+		log.Fatal("Err")
 	}
 
 	var slackMessage = string(content)
@@ -73,17 +72,17 @@ func sendSlackmessage() {
 		slack.MsgOptionAsUser(false), // Add this if you want that the bot would post message as a user, otherwise it will send response using the default slackbot
 	)
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		log.Printf("%s\n", err)
 		return
 	}
-	fmt.Printf("Message successfully sent to channel %s at %s", channelID, timestamp)
+	log.Printf("Ingredients mixed and Slack message successfully sent to channel %s at %s", channelID, timestamp)
 }
 
-func openai_dinner() {
+func openai_ingredient_mixer() {
 	RESPONSE_FILE := os.Getenv("RESPONSE_FILE")
 	f, err := os.Create(RESPONSE_FILE) // create &/or clear the local file
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	defer f.Close() // close the file with defer
 
@@ -92,7 +91,7 @@ func openai_dinner() {
 	INVENTORY_FILE := os.Getenv("INVENTORY_FILE")
 	content, err := ioutil.ReadFile(INVENTORY_FILE) // opens the inventory file just created
 	if err != nil {
-		fmt.Println("Err")
+		log.Fatal("Err")
 	}
 	var openaiPrompt = string(content)
 	OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
@@ -111,7 +110,7 @@ func openai_dinner() {
 	}
 	stream, err := c.CreateChatCompletionStream(ctx, req)
 	if err != nil {
-		fmt.Printf("ChatCompletionStream error: %v\n", err)
+		log.Printf("ChatCompletionStream error: %v\n", err)
 		return
 	}
 	defer stream.Close()
@@ -123,7 +122,7 @@ func openai_dinner() {
 		}
 
 		if err != nil {
-			fmt.Printf("\nStream error: %v\n", err)
+			log.Printf("\nStream error: %v\n", err)
 			return
 		}
 		var responseContent = response.Choices[0].Delta.Content
@@ -132,10 +131,12 @@ func openai_dinner() {
 }
 
 func main() {
+	// Load .env file
 	err := godotenv.Load()
 	  if err != nil {
 		log.Fatal("Error loading .env file")
 	  }
+	// Create request to get all products from Grocy
 	GROCY_URL := os.Getenv("GROCY_URL")
 	url := GROCY_URL
 	method := "GET"
@@ -143,70 +144,74 @@ func main() {
 	req, err := http.NewRequest(method, url, nil)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 		return
 	}
 	GROCY_API_KEY := os.Getenv("GROCY_API_KEY")
 	req.Header.Add("GROCY-API-KEY", GROCY_API_KEY)
-
 	res, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 		return
 	}
 	defer res.Body.Close()
-
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 		return
 	}
 	var products []map[string]interface{} //defining the array of products
-	
-	jsonData := body //json array to be decoded to an array
-	//decoding JSON array to products array
-	err = json.Unmarshal([]byte(jsonData), &products)
+	err = json.Unmarshal([]byte(body), &products)
 	if err != nil {
-		fmt.Println("Error while decoding the data", err.Error())
+		log.Fatal("Error while decoding the data", err.Error())
 	}
 	INVENTORY_FILE := os.Getenv("INVENTORY_FILE")
-	f, err := os.Create(INVENTORY_FILE) // create the inventory file
+	f, err := os.Create(INVENTORY_FILE) // create/clear the inventory file
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	defer f.Close() // close the file with defer
 
 	PERSONALITIES := os.Getenv("PERSONALITIES")
 	jsonContent, err := ioutil.ReadFile(PERSONALITIES) // opens the inventory file just created
 	if err != nil {
-		fmt.Println("Err")
+		log.Fatal("Err")
 	}
 	var jsonInput = string(jsonContent)
 	var Themes []Theme
-
 	err = json.Unmarshal([]byte(jsonInput), &Themes)
 
 	if err != nil {
-		fmt.Println("JSON decode error!")
+		log.Fatal("JSON decode error!")
 		return
 	}
-	// randomize the personality
-	arr := []string{"valley_bro", "bill_and_ted", "your_excellency", "hh_holmes", "flying_spaghetti_monster", "norman_bates", "x_files", "jack_the_ripper"} // Shorthand declaration of array
-	rand.Seed(time.Now().UTC().UnixNano())
-	var randomInt int = randInt(0, 8)
-	var random_theme string = arr[randomInt] 
 
-	for index, theme := range Themes {
-		fmt.Print(index + 1)
-		if strings.TrimRight(random_theme, "\n") == theme.Name {
+	var names []string
+	for _, theme := range Themes {
+		names = append(names, theme.Name)
+	}
+	
+	rand.Seed(time.Now().UTC().UnixNano())
+	var randomInt int = randInt(0, len(Themes))
+	var random_theme string = names[randomInt]
+	var theme_choice string
+	
+	RANDOM_PROMPT, err := strconv.ParseBool(os.Getenv("RANDOM_PROMPT"))
+	if RANDOM_PROMPT {
+		theme_choice = random_theme
+	} else {
+		theme_choice = os.Getenv("STATIC_PROMPT")
+	}
+
+	for _, theme := range Themes {
+		if strings.TrimRight(theme_choice, "\n") == theme.Name {
 			f.Write([]byte(theme.Prompt.OpenAI)) //write directly into file
 		}
 	}
 
-	f.Write([]byte(PROMPT_PREFIX)) //write directly into file
-	for index, product := range products {
-		var totals int = index + 1
-		fmt.Print(totals)
+	f.Write([]byte(os.Getenv("INGREDIENT_LIST_HANDLING"))) //write directly into file
+	
+	for _, product := range products {
 		var active = int64(product["active"].(float64)) // in-stock units have positive active numbers
 		if active > 0 { // it's in stock, adding to the list
 			var name = product["name"].(string)
@@ -214,6 +219,6 @@ func main() {
 			f.WriteString(", ")
 		}
 	}
-	openai_dinner()
+	openai_ingredient_mixer()
 	sendSlackmessage()
 }
