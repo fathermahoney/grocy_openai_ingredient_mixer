@@ -22,3 +22,4 @@ go.work
 .DS_Store
 .env
 *.txt
+test.go
