@@ -7,7 +7,7 @@ import (
     "fmt"
     openai "github.com/sashabaranov/go-openai"
     "github.com/slack-go/slack"
-    "github.com/joho/godotenv"
+    // "github.com/joho/godotenv"
     "io"
     "io/ioutil"
     "math/rand"
