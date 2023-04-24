@@ -95,8 +95,9 @@ func main() {
     }
 
     // Load personality prompt file
-    PERSONALITIES := ".personalities.json"
+    PERSONALITIES := "./personalities.json"
     jsonContent, err := ioutil.ReadFile(PERSONALITIES) // opens the inventory file just created
+	fmt.Println(jsonContent)
     
     if err != nil {
         log.Fatal("Err")
