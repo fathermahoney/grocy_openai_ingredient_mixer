@@ -71,6 +71,7 @@ func main() {
     // Create request to get all products from Grocy
     GROCY_URL := os.Getenv("GROCY_URL")
     url := GROCY_URL
+	log.Print(url)
     method := "GET"
     client := &http.Client{}
     req, err := http.NewRequest(method, url, nil)
