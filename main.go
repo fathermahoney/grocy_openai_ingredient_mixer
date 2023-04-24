@@ -66,7 +66,6 @@ func main() {
     // Create necessary buffers
     var openai_buf bytes.Buffer
     openai_writer := bufio.NewWriter(&openai_buf)
-    // openai_buf := bytes.Buffer{}
     
     // Create request to get all products from Grocy
     GROCY_URL := os.Getenv("GROCY_URL")

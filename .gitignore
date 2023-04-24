@@ -23,3 +23,4 @@ go.work
 .env
 *.txt
 test.go
+main

@@ -18,6 +18,16 @@ on:
 jobs:
   grocy-openai-ingredient-mixer:
     runs-on: ubuntu-latest
+    env:
+      CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+      GROCY_API_KEY: ${{ secrets.GROCY_API_KEY }}
+      GROCY_URL: ${{ secrets.GROCY_URL }}
+      INGREDIENT_LIST_HANDLING: ${{ secrets.INGREDIENT_LIST_HANDLING }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PERSONALITIES: ${{ secrets.PERSONALITIES }}
+      RANDOM_PROMPT: ${{ secrets.RANDOM_PROMPT }}
+      SLACK_API_KEY: ${{ secrets.SLACK_API_KEY }}
+      STATIC_PROMPT: ${{ secrets.STATIC_PROMPT }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
