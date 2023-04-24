@@ -57,12 +57,6 @@ func randInt(min int, max int) int {
 }
 
 func main() {
-    // Load .env file
-    // err := godotenv.Load()
-    //   if err != nil {
-    //     log.Fatal("Error loading .env file")
-    //   }
-      
     // Create necessary buffers
     var openai_buf bytes.Buffer
     openai_writer := bufio.NewWriter(&openai_buf)
@@ -101,7 +95,7 @@ func main() {
     }
 
     // Load personality prompt file
-    PERSONALITIES := os.Getenv("PERSONALITIES")
+    PERSONALITIES := ".personalities.json"
     jsonContent, err := ioutil.ReadFile(PERSONALITIES) // opens the inventory file just created
     
     if err != nil {
