@@ -93,14 +93,6 @@ func main() {
     if err != nil {
         log.Fatal("Error while decoding the data", err.Error())
     }
-
-    // Load personality prompt file
-    // PERSONALITIES := os.Getenv("PERSONALITIES")
-	// file, err := os.Open("config.json")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
 	
     jsonContent, err := ioutil.ReadFile("./personalities.json") // opens the inventory file just created
     
@@ -142,10 +134,11 @@ func main() {
             openai_writer.Flush()
         }
     }
-    openai_writer.WriteString(os.Getenv("INGREDIENT_LIST_HANDLING"))
+	var INGREDIENT_LIST_HANDLING string = "Then, list 10 meal dishes one could make using any of the following ingredients, which is a list separated by a comma. Each entry represents a full ingredient or product to be considered. Prioritize combinations of ingredients from highly-rated existing recipes. Highlight specific ingredients needed or not included using parenthesis. The list of ingredients starts now, "
+    openai_writer.WriteString(INGREDIENT_LIST_HANDLING)
     openai_writer.Flush()
-    
-    for _, product := range products {
+	
+	for _, product := range products {
         var active = int64(product["active"].(float64)) // in-stock units have positive active numbers
         if active > 0 { // it's in stock, adding to the list
             var name = product["name"].(string)
@@ -162,7 +155,6 @@ func openai_ingredient_mixer(openai_buf *bytes.Buffer) {
     headline := fmt.Sprintf("*Tanglesprings Specials for %s %s %d, %d*\n", weekday, month, day, year)
     writer.WriteString(headline)
     writer.Flush()
-        
     var openaiPrompt string = openai_buf.String()
     OPENAI_API_KEY := os.Getenv("OPENAI_API_KEY")
     c := openai.NewClient(OPENAI_API_KEY)
@@ -199,12 +191,10 @@ func openai_ingredient_mixer(openai_buf *bytes.Buffer) {
         writer.WriteString(responseContent)
         writer.Flush()
     }
-    fmt.Println(slack_buf.String())
     sendSlackmessage(&slack_buf)
 }
 
 func sendSlackmessage(slack_buf *bytes.Buffer) {
-    fmt.Println(slack_buf.String())
     var slackMessage = slack_buf.String()
     formattedSlackMessage := fmt.Sprintf(strings.Replace(slackMessage, "\"", "", 3))
     SLACK_API_KEY := os.Getenv("SLACK_API_KEY")
